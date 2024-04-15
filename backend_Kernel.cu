@@ -13,8 +13,8 @@ __global__ void supCUDA(char* key,char* initaddr,int itersize, int rounds )
     // unsigned long long int addr = hostaddr + (id*itersize) ;
     char* thread_addr = (char*)hostaddr;
 
-    if(threadIdx.x == 0)
-        printf("tid = %d : %llu\n",id,(unsigned long long int*)thread_addr);
+    // if(threadIdx.x == 0 && blockIdx.x == 0)4
+    //     printf("tid = %d : %llu\n",id,(unsigned long long int*)thread_addr);
 
     while (rounds >0)
     {
@@ -74,22 +74,14 @@ int main(int argc, char *argv[])
 
     fclose(tempfile);
 
-    //  char* argt =  argv[1];
-    // char* argx = argv[2];
-    // printf("\nArguement 1:%s\n",argt);
-    // printf("Arguement 2:%s\n",argx);
-
-    // cudaDeviceProp deviceProp;
-    // cudaGetDeviceProperties(&deviceProp,0);
-
-    // int x= 9;//atoi(argt);
-    // int y= 3;//atoi(argx);
-
-    // cudaMemGetInfo(&free_bytes, &total_bytes);
 
     unsigned long long int temp,residue,cuda_malloc_size,filesize,iter_size,max_free,available_mem,residue_offset,kernel_rounds=0;
     long long int rounds=0;
     char *CudaData, *CudaKey ,*inputfile, *outputfile,*size,*mode,*random;
+
+    
+    cudaDeviceProp deviceProp;
+    cudaGetDeviceProperties(&deviceProp,0);
 
     inputfile = lines[1];
     outputfile = lines[2];
@@ -100,18 +92,20 @@ int main(int argc, char *argv[])
     FILE* writer = fopen(outputfile,"wb");
 
     int blocks =4,threads=32;
+    blocks = deviceProp.multiProcessorCount;
+    threads =deviceProp.warpSize;
 
     filesize  = strtoull(size,&random,10);
     
-    available_mem = 128*128;
+    cudaMemGetInfo(&available_mem,&temp);
     char *key = lines[0] ;
 
     printf("inputfile :%s\n",inputfile);
     printf("outputfile :%s\n",outputfile);
     printf("key :%s\n",key);
-    printf("size :%llu\n",size);
+    printf("size :%llu\n",filesize);
     printf("mode :%s\n",mode);
-
+    printf("============================\n");
 
 
     cudaMalloc((void**)&CudaKey, 129);
@@ -122,9 +116,11 @@ int main(int argc, char *argv[])
     max_free = available_mem-residue;
     // unsigned long long int total = total_bytes;
 
-    printf("\nfree available:  %llu",available_mem);
+    printf("\nfree mem:  %llu",available_mem);
     printf("\nmaxfree:  %llu",max_free);
-    printf("\nfilesize:  %llu",filesize);
+    printf("\nitersize:  %llu",iter_size);
+    printf("\nprocessors:  %d",blocks);
+    printf("\nwarp size:  %d",threads);
     printf("\n=====================\n");
 
     char *hostptr,*hostptrcpy;
@@ -171,6 +167,8 @@ int main(int argc, char *argv[])
 
 
         }
+        cudaFree(CudaData);
+
                                         printf("*6\n");
 
 
@@ -207,8 +205,9 @@ int main(int argc, char *argv[])
             supCUDA<<<blocks,threads>>>(CudaKey,CudaData,iter_size,kernel_rounds);
             cudaDeviceSynchronize();
 
-            printf("\nCase2 mid kernel launched\n");
+            printf("Case2 mid kernel launched\n");
             cudaMemcpy(hostptrcpy,CudaData,cuda_malloc_size,cudaMemcpyDeviceToHost);
+            cudaFree(CudaData);
                                         printf("*B\n");
 
         }
@@ -237,10 +236,11 @@ int main(int argc, char *argv[])
             //Launch CUDA kernel here
             supCUDA<<<blocks,threads>>>(CudaKey,CudaData,iter_size,kernel_rounds);
             cudaDeviceSynchronize();
-            printf("\nCase3 mid kernel launched\n");
+            printf("Case3 mid kernel launched\n");
             cudaMemcpy(hostptrcpy,CudaData,cuda_malloc_size,cudaMemcpyDeviceToHost);
                                         printf("*D\n");
 
+            cudaFree(CudaData);
             hostptrcpy = hostptrcpy + residue_offset;
         }
         if(residue > 0 )
@@ -263,14 +263,14 @@ int main(int argc, char *argv[])
 
             hostptrcpy= hostptr + residue_offset;
 
-            
-            printf("\nCase4 light sequential execution\n");
-            printf("\nSequential rounds: %lld",rounds);
+            printf("\n=====================\n");
+            printf("residue:%lld\n",residue);
+            printf("Case4 light sequential execution\n");
+            printf("Sequential rounds: %lld\n",rounds);
             
             sequentiel(key,hostptrcpy,rounds);
             //Launch normal kernel here
-            printf("\n=====================\n");
-            printf("\nresidue:%lld",residue);
+            
         }
 
     }
@@ -291,7 +291,7 @@ int main(int argc, char *argv[])
 
     // cudaFree(cudaptr);
     
-    cudaFree(CudaData);
+    // cudaFree(CudaData);
     cudaFree(CudaKey);
 
     fwrite(hostptr, filesize,1,writer);
@@ -301,7 +301,7 @@ int main(int argc, char *argv[])
 
     for (int i = 0; i < line_count; i++) 
     {
-        printf("Line %d: %s\n", i, lines[i]);
+        // printf("Line %d: %s\n", i, lines[i]);
         free(lines[i]);
     }
 
