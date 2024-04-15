@@ -8,7 +8,6 @@ from time import *
 import subprocess
 import threading
 import hashlib
-
 import msvcrt
 import sys
 import os
@@ -38,7 +37,7 @@ def aux(password, mode, result_list, label4, label5, label6, main_window):
     label5.setText("Processing your file...")
     label6.setText("")
     
-    print(str(password))
+    # print(str(password))
 
     hashv= hashlib.sha3_512(str(password).encode("utf-8"))
     c = hashv.digest()
@@ -47,7 +46,7 @@ def aux(password, mode, result_list, label4, label5, label6, main_window):
     c = c + d
     keys = c.hex()
     
-    print(c.hex())
+    # print(c.hex())
     
 
     inputfile = str(result_list[0])
@@ -76,7 +75,7 @@ def aux(password, mode, result_list, label4, label5, label6, main_window):
     filesize= file_stat.st_size
     OGfilesize = filesize
 
-    print("file size:",filesize)
+    # print("file size:",filesize)
 
 
     start= time()
@@ -108,7 +107,8 @@ def aux(password, mode, result_list, label4, label5, label6, main_window):
     outputfile = open(ffi_file, "wb")
     outputfile.write(trash)
     outputfile.close()
-
+    os.remove(ffi_file)
+    
     
     end_time = time()
     execution_time = end_time - start
@@ -274,3 +274,4 @@ if __name__ == '__main__':
     widget.show()
     sys.exit(app.exec_())
 
+#(Get-FileHash -Path "5_unlocked" -Algorithm SHA512).Hash
