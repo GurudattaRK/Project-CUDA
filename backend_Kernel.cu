@@ -241,8 +241,14 @@ int main(int argc, char *argv[])
                                         printf("*D\n");
 
             cudaFree(CudaData);
+                                        printf("*D1\n");
+
             hostptrcpy = hostptrcpy + residue_offset;
+                                        printf("*D2\n");
+
         }
+                                        printf("*D3\n");
+
         if(residue > 0 )
         {
                                         printf("*E\n");
@@ -250,6 +256,8 @@ int main(int argc, char *argv[])
             if((residue%128)==0)
             {
                 rounds = residue / 128;
+                                        printf("*E1\n");
+
 
             }
             else
@@ -257,11 +265,15 @@ int main(int argc, char *argv[])
                 temp = residue%128 ;
                 residue = residue + (128-temp);
                 rounds = residue/128 ;
+                                        printf("*E2\n");
+
             }
             // printf("\nmid rounds:%lld",rounds);
 
 
             hostptrcpy= hostptr + residue_offset;
+                                        printf("*E3\n");
+
 
             printf("\n=====================\n");
             printf("residue:%lld\n",residue);
@@ -269,11 +281,17 @@ int main(int argc, char *argv[])
             printf("Sequential rounds: %lld\n",rounds);
             
             sequentiel(key,hostptrcpy,rounds);
+                                        printf("*end\n");
+
             //Launch normal kernel here
             
         }
+                                        printf("*E4\n");
+
 
     }
+                                        printf("*E5\n");
+
     
     // cudaMalloc((void**)&cudaptr,cuda_malloc_size);
 
@@ -293,11 +311,14 @@ int main(int argc, char *argv[])
     
     // cudaFree(CudaData);
     cudaFree(CudaKey);
+                                        printf("*E6\n");
+
 
     fwrite(hostptr, filesize,1,writer);
 
     fclose(writer);
     fclose(reader);
+                                        printf("*E7\n");
 
     for (int i = 0; i < line_count; i++) 
     {
@@ -310,6 +331,8 @@ int main(int argc, char *argv[])
     // printf("\nProcessors: %d",deviceProp.multiProcessorCount);
     // printf("\nWarp: %d",deviceProp.warpSize);
     // printf("\nIteration size: %d",deviceProp.multiProcessorCount*deviceProp.warpSize*128);
+                                        printf("*E8\n");
+
 
     return 0;
 }
