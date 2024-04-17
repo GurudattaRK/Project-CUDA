@@ -176,10 +176,10 @@ class MyWidget(QWidget):
     def initUI(self):
 
         try:
-            icon_path= resource_path('nvidia.ico')
+            icon_path= resource_path('nvidialock.ico')
             self.setWindowIcon(QIcon(icon_path))
         except:
-            print("Icon file named shield.ico not found")
+            print("Icon file named nvidialock.ico not found")
 
         label1 = QLabel('Select the file you want to Encrypt/Decrypt')
         label1.setStyleSheet("color: #02013D; font-weight: bold;")
@@ -190,8 +190,16 @@ class MyWidget(QWidget):
         button1.setFont(QFont("Calibri", 15, QFont.Bold))
         button1.clicked.connect(lambda:openfile1(result_list, self.label2))
 
+        executable_path = "corecount.exe"
+        try:
+            output = subprocess.check_output(executable_path, universal_newlines=True)
+        except subprocess.CalledProcessError as e:
+            count=e.returncode
+
         self.label2 = QLabel('')
         self.label2.setStyleSheet("color: #444444; font-weight: bold;")
+        self.label2.setText('Tip: Choose a file bigger than '+str(count*5*128) + ' bytes to utilize full strength of your GPU')
+
 
         label3 = QLabel('Enter your password:')
         label3.setStyleSheet("color: #02013D; font-weight: bold;")
