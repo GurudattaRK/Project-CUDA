@@ -32,21 +32,28 @@ def openfile1(result_list,label2):
 def aux(password, mode, result_list, label4, label5, label6, main_window):
 
     label4.hide()
+    #main_window.show_finished_image(69)
     label5.setText("Processing your file...")
     label6.setText("")
     
 
-    c= (hashlib.sha3_512(str(password).encode("utf-8"))).digest()
-    d=(hashlib.sha3_512(str(c).encode("utf-8"))).digest()
+    hashv= hashlib.sha3_512(str(password).encode("utf-8"))
+    c = hashv.digest()
+    hashv= hashlib.sha3_512(str(c).encode("utf-8"))
+    d = hashv.digest()
     c = c + d
     keys = c.hex()
     
+    
+
     inputfile = str(result_list[0])
 
     if(mode == 0):
         output= inputfile + ".lock"
     else:
         # Remove the extension from the path
+        #output = os.path.splitext(inputf)[0]
+        # Check if the extension is "lock" and remove it
         if inputfile.endswith(".lock"):
             output = inputfile[:-5]
             output_name = os.path.splitext(output)[0]
@@ -58,29 +65,45 @@ def aux(password, mode, result_list, label4, label5, label6, main_window):
             ouput_ext=os.path.splitext(output)[1]
             output=output_name + "_unlocked" + ouput_ext
 
+    outputfile = open(output, "wb")
+    outputfile.close()
+
     file_stat = os.stat(inputfile)
     filesize= file_stat.st_size
+    OGfilesize = filesize
+
 
 
     start= time()
-    outputfile = open("FFI_data.txt", "w")
-    outputfile.write(keys +"\n"+ inputfile +"\n" +  output +"\n" + str(filesize)+"\n" + str(mode) +"\n")
+    ffi_file = "FFI_data.txt"
+    outputfile = open(ffi_file, "w")
+    outputfile.write(keys)
+    outputfile.write("\n")
+    outputfile.write(inputfile)
+    outputfile.write("\n")
+    outputfile.write(output)
+    outputfile.write("\n")
+    outputfile.write(str(filesize))
+    outputfile.write("\n")
+    outputfile.write(str(mode))
     outputfile.close()
 
-    file_stat = os.stat("FFI_data.txt")
+    file_stat = os.stat(ffi_file)
     trash_size = file_stat.st_size
 
 
     executable_path = "CUDA_backend.exe"  # Replace with actual path
-    arguments = ["FFI_data.txt"]  # Replace with your input values
+    arguments = [ffi_file]  # Replace with your input values
 
-    subprocess.run(["CUDA_backend.exe", *arguments])
+    subprocess.run([executable_path, *arguments])
 
+    ffi_file = "FFI_data.txt"
     trash = b'00'*trash_size
-    outputfile = open("FFI_data.txt", "wb")
+    outputfile = open(ffi_file, "wb")
     outputfile.write(trash)
     outputfile.close()
-    os.remove("FFI_data.txt")
+    os.remove(ffi_file)
+    
     
     end_time = time()
     execution_time = end_time - start
@@ -89,14 +112,15 @@ def aux(password, mode, result_list, label4, label5, label6, main_window):
     if(mode ==0):
         main_window.show_finished_image(0)
         msg1 ="Encrypted file's location:\n"+str(output)
-        msg2 ="Encrypted "+ str(filesize) +" bytes in "+str(execution_time) + " seconds"
+        msg2 ="Encrypted "+ str(OGfilesize) +" bytes in "+str(execution_time) + " seconds"
 
     else:
         main_window.show_finished_image(1)
         msg1 ="Decrypted file's location:\n"+str(output)
-        msg2 ="Decrypted "+ str(filesize) +" bytes in "+str(execution_time) + " seconds"
+        msg2 ="Decrypted "+ str(OGfilesize) +" bytes in "+str(execution_time) + " seconds"
 
-    label5.setText(msg1); label5.setAlignment(Qt.AlignCenter)
+    label5.setText(msg1)
+    label5.setAlignment(Qt.AlignCenter)
     label6.setText(msg2)
 
     return
@@ -120,14 +144,23 @@ class MyWidget(QWidget):
         thread.start()
     
     def show_finished_image(self,mode):
-        self.loading_label.hide(); self.label4.show()
+        # Hide the loading label
+        self.loading_label.hide()
+        self.label4.show()
+        finished_image_path1 = resource_path('locked_file.png')
+
+        finished_image_path2 = resource_path('unlocked_file.png')
+
+        # Load and set the finished image
         if(mode == 0):
-            pixmap = QPixmap(resource_path('locked_file.png'))
+            pixmap = QPixmap(finished_image_path1)
 
         else:
-            pixmap = QPixmap( resource_path('unlocked_file.png'))
+            pixmap = QPixmap(finished_image_path2)
         
-        self.label4.setText(""); self.label4.setPixmap(pixmap); self.label4.setAlignment(Qt.AlignCenter)
+        self.label4.setText("")  # Clear any previous messages
+        self.label4.setPixmap(pixmap)
+        self.label4.setAlignment(Qt.AlignCenter)
 
     def toggle_password_visibility(self):
         if self.password_field.echoMode() == QLineEdit.Password:
@@ -143,48 +176,91 @@ class MyWidget(QWidget):
     def initUI(self):
 
         try:
-            self.setWindowIcon(QIcon(resource_path('nvidialock.ico')))
+            icon_path= resource_path('nvidialock.ico')
+            self.setWindowIcon(QIcon(icon_path))
         except:
             print("Icon file named nvidialock.ico not found")
 
-        label1 = QLabel('Select the file you want to Encrypt/Decrypt'); label1.setStyleSheet("color: #02013D; font-weight: bold;"); label1.setFont(QFont("Calibri", 18))
+        label1 = QLabel('Select the file you want to Encrypt/Decrypt')
+        label1.setStyleSheet("color: #02013D; font-weight: bold;")
+        label1.setFont(QFont("Calibri", 18))
 
-        button1 = QPushButton('Select file here'); button1.setStyleSheet("background-color: #2510c7; color: white; padding: 10px; border-radius: 5px;"); button1.setFont(QFont("Calibri", 15, QFont.Bold)); button1.clicked.connect(lambda:openfile1(result_list, self.label2))
+        button1 = QPushButton('Select file here')
+        button1.setStyleSheet("background-color: #2510c7; color: white; padding: 10px; border-radius: 5px;")
+        button1.setFont(QFont("Calibri", 15, QFont.Bold))
+        button1.clicked.connect(lambda:openfile1(result_list, self.label2))
 
+        executable_path = "corecount.exe"
         try:
-            output = subprocess.check_output("corecount.exe", universal_newlines=True)
+            output = subprocess.check_output(executable_path, universal_newlines=True)
         except subprocess.CalledProcessError as e:
             count=e.returncode
 
-        self.label2 = QLabel(''); self.label2.setStyleSheet("color: #444444; font-weight: bold;"); self.label2.setText('Tip: Choose a file bigger than '+str(count*5*128) + ' bytes to utilize full strength of your GPU')
+        self.label2 = QLabel('')
+        self.label2.setStyleSheet("color: #444444; font-weight: bold;")
+        self.label2.setText('Tip: Choose a file bigger than '+str(count*5*128) + ' bytes to utilize full strength of your GPU')
 
 
-        label3 = QLabel('Enter your password:'); label3.setStyleSheet("color: #02013D; font-weight: bold;"); label3.setFont(QFont("Calibri", 15))
+        label3 = QLabel('Enter your password:')
+        label3.setStyleSheet("color: #02013D; font-weight: bold;")
+        label3.setFont(QFont("Calibri", 15))
         
-        self.label4 = QLabel(''); self.label4.setStyleSheet("color: #222222; font-weight: bold;"); self.label4.setFont(QFont("Calibri", 14))
+        self.label4 = QLabel('')
+        self.label4.setStyleSheet("color: #222222; font-weight: bold;")
+        self.label4.setFont(QFont("Calibri", 14))
 
-        self.label5 = QLabel(''); self.label5.setStyleSheet("color: #444444; font-weight: bold;"); self.label5.setFont(QFont("Calibri", 14))
+        self.label5 = QLabel('')
+        self.label5.setStyleSheet("color: #444444; font-weight: bold;")
+        self.label5.setFont(QFont("Calibri", 14))
 
-        self.label6 = QLabel(''); self.label6.setStyleSheet("color: #666666; font-weight: bold;"); self.label6.setFont(QFont("Calibri", 12))
+        self.label6 = QLabel('')
+        self.label6.setStyleSheet("color: #666666; font-weight: bold;")
+        self.label6.setFont(QFont("Calibri", 12))
 
-        self.password_field = QLineEdit(); self.password_field.setEchoMode(QLineEdit.Password); self.password_field.setStyleSheet("background-color: #F0F0F0; border: 1px solid #BFBFBF; padding: 10px; border-radius: 5px;"); self.password_field.setFont(QFont("Calibri", 12))
+        self.password_field = QLineEdit()
+        self.password_field.setEchoMode(QLineEdit.Password)  # Set the echo mode to Password for masked input
+        self.password_field.setStyleSheet("background-color: #F0F0F0; border: 1px solid #BFBFBF; padding: 10px; border-radius: 5px;")
+        self.password_field.setFont(QFont("Calibri", 12))
 
-        self.show_password_button = QPushButton(); self.show_password_button.setIcon(QIcon(resource_path('eye_con.png'))); self.show_password_button.clicked.connect(self.toggle_password_visibility)
+        self.show_password_button = QPushButton()
+        eye_con = resource_path('eye_con.png')
+        self.show_password_button.setIcon(QIcon(eye_con))
+        self.show_password_button.clicked.connect(self.toggle_password_visibility)
         
         
-        button2 = QPushButton('Encrypt'); button2.setStyleSheet("background-color: #77b801; color: white; padding: 10px; border-radius: 5px;"); button2.setFont(QFont("Calibri", 15, QFont.Bold)); button2.clicked.connect(lambda _: self.start_aux_thread(0))
+        button2 = QPushButton('Encrypt')
+        button2.setStyleSheet("background-color: #77b801; color: white; padding: 10px; border-radius: 5px;")
+        button2.setFont(QFont("Calibri", 15, QFont.Bold))
+        button2.clicked.connect(lambda _: self.start_aux_thread(0))
 
-        button3 = QPushButton('Decrypt'); button3.setStyleSheet("background-color: #c90202; color: white; padding: 10px; border-radius: 5px;"); button3.setFont(QFont("Calibri", 15, QFont.Bold)); button3.clicked.connect(lambda _: self.start_aux_thread(1))
+        button3 = QPushButton('Decrypt')
+        button3.setStyleSheet("background-color: #c90202; color: white; padding: 10px; border-radius: 5px;")
+        button3.setFont(QFont("Calibri", 15, QFont.Bold))
+        button3.clicked.connect(lambda _: self.start_aux_thread(1))
 
         vbox = QVBoxLayout()
         hbox = QHBoxLayout()
         hbox2 = QHBoxLayout()
 
-        vbox.addWidget(label1); vbox.addWidget(button1); vbox.addWidget(self.label2); vbox.addWidget(label3); vbox.addLayout(hbox); hbox.addWidget(self.password_field); hbox.addWidget(self.show_password_button); vbox.addLayout(hbox2)
+        vbox.addWidget(label1)
+        vbox.addWidget(button1)
+        vbox.addWidget(self.label2)
+        vbox.addWidget(label3)
+        vbox.addLayout(hbox)
+        hbox.addWidget(self.password_field)
+        hbox.addWidget(self.show_password_button)
+        vbox.addLayout(hbox2)
 
-        hbox2.addWidget(button2); hbox2.addWidget(button3); vbox.addWidget(self.label4); vbox.addWidget(self.label5); vbox.addWidget(self.label6); vbox.setSpacing(20); vbox.setContentsMargins(20, 20, 20, 20)
+        hbox2.addWidget(button2)
+        hbox2.addWidget(button3)
+        vbox.addWidget(self.label4)
+        vbox.addWidget(self.label5)
+        vbox.addWidget(self.label6)
+        vbox.setSpacing(20)
+        vbox.setContentsMargins(20, 20, 20, 20)
 
         self.setLayout(vbox)
+
 
 if __name__ == '__main__':
     freeze_support()
