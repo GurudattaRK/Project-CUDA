@@ -1,16 +1,18 @@
 #include<stdio.h>
-#include<conio.h>
 #include<stdlib.h>
 #include<cuda_runtime.h>
 
 __global__ void supCUDA(char* key,char* initaddr,int itersize, int rounds ) 
 {
-    int id = (threadIdx.x) + (blockIdx.x * 32);
+    int id;
+    id = (threadIdx.x) + (blockIdx.x * 32);
     
-    unsigned long long int  hostaddr =(unsigned long long int)initaddr ;
+    unsigned long long int  hostaddr;
+    hostaddr =(unsigned long long int)initaddr ;
 
     hostaddr = hostaddr + (id*128);
-    char* thread_addr = (char*)hostaddr;
+    char* thread_addr; 
+    thread_addr = (char*)hostaddr;
 
 
     while (rounds >0)
@@ -29,9 +31,10 @@ __global__ void supCUDA(char* key,char* initaddr,int itersize, int rounds )
 
 void sequentiel(char* key,char* data,int rounds)
 {
+    int i;
     while(rounds>0 || rounds !=0)
     {
-        for(int i=0; i<128;i++)
+        for(i=0; i<128;i++)
         {
             data[i]= data[i] ^ key[i];
         }
@@ -44,7 +47,8 @@ void sequentiel(char* key,char* data,int rounds)
 int main(int argc, char *argv[])
 {
 
-    char* argt =  argv[1];
+    char* argt ;
+    argt =  argv[1];
     FILE* tempfile = fopen(argt,"r");
     char line[257];
     char *lines[5]; // Array to store pointers to each line string
@@ -70,8 +74,8 @@ int main(int argc, char *argv[])
     fclose(tempfile);
 
 
-    unsigned long long int temp,residue,cuda_malloc_size,filesize,iter_size,max_free,available_mem,residue_offset,kernel_rounds=0;
-    long long int rounds=0;
+    unsigned long long int temp,residue,cuda_malloc_size,filesize,iter_size,max_free,available_mem,residue_offset,kernel_rounds;
+    long long int rounds;
     char *CudaData, *CudaKey ,*inputfile, *outputfile,*size,*random;//*mode;
 
     
@@ -93,7 +97,8 @@ int main(int argc, char *argv[])
     filesize  = strtoull(size,&random,10);
     
     cudaMemGetInfo(&available_mem,&temp);
-    char *key = lines[0] ;
+    char *key;
+    key = lines[0] ;
 
     // printf("inputfile :%s\n",inputfile);
     // printf("outputfile :%s\n",outputfile);
@@ -106,7 +111,8 @@ int main(int argc, char *argv[])
     cudaMalloc((void**)&CudaKey, 129);
     cudaMemcpy(CudaKey, key, 128, cudaMemcpyHostToDevice);
 
-    iter_size =blocks*threads*128 ;
+    iter_size =blocks*128;
+    iter_size = threads * iter_size;
     residue = available_mem % iter_size;
     max_free = available_mem-residue;
 
@@ -125,6 +131,8 @@ int main(int argc, char *argv[])
     hostptrcpy = hostptr;
 
     residue = 0;
+    rounds = 0;
+    kernel_rounds=0;
 
     if(filesize>max_free)
     {
@@ -192,7 +200,7 @@ int main(int argc, char *argv[])
     if(residue!=0)
     {
 
-        if(residue >= iter_size*10)
+        if(residue >= iter_size*5)
         {
             temp =  residue/iter_size;
             cuda_malloc_size = temp * iter_size;
@@ -250,10 +258,11 @@ int main(int argc, char *argv[])
     fclose(writer);
     fclose(reader);
 
-    for (int i = 0; i < line_count; i++) 
-    {
-        free(lines[i]);
-    }
+    free(lines[0]);
+    free(lines[1]);
+    free(lines[2]);
+    free(lines[3]);
+    free(lines[4]);
     free(hostptr);
 
     return 0;
