@@ -32,28 +32,21 @@ def openfile1(result_list,label2):
 def aux(password, mode, result_list, label4, label5, label6, main_window):
 
     label4.hide()
-    #main_window.show_finished_image(69)
     label5.setText("Processing your file...")
     label6.setText("")
     
 
-    hashv= hashlib.sha3_512(str(password).encode("utf-8"))
-    c = hashv.digest()
-    hashv= hashlib.sha3_512(str(c).encode("utf-8"))
-    d = hashv.digest()
+    c= (hashlib.sha3_512(str(password).encode("utf-8"))).digest()
+    d=(hashlib.sha3_512(str(c).encode("utf-8"))).digest()
     c = c + d
     keys = c.hex()
     
-    
-
     inputfile = str(result_list[0])
 
     if(mode == 0):
         output= inputfile + ".lock"
     else:
         # Remove the extension from the path
-        #output = os.path.splitext(inputf)[0]
-        # Check if the extension is "lock" and remove it
         if inputfile.endswith(".lock"):
             output = inputfile[:-5]
             output_name = os.path.splitext(output)[0]
@@ -65,45 +58,29 @@ def aux(password, mode, result_list, label4, label5, label6, main_window):
             ouput_ext=os.path.splitext(output)[1]
             output=output_name + "_unlocked" + ouput_ext
 
-    outputfile = open(output, "wb")
-    outputfile.close()
-
     file_stat = os.stat(inputfile)
     filesize= file_stat.st_size
-    OGfilesize = filesize
-
 
 
     start= time()
-    ffi_file = "FFI_data.txt"
-    outputfile = open(ffi_file, "w")
-    outputfile.write(keys)
-    outputfile.write("\n")
-    outputfile.write(inputfile)
-    outputfile.write("\n")
-    outputfile.write(output)
-    outputfile.write("\n")
-    outputfile.write(str(filesize))
-    outputfile.write("\n")
-    outputfile.write(str(mode))
+    outputfile = open("FFI_data.txt", "w")
+    outputfile.write(keys +"\n"+ inputfile +"\n" +  output +"\n" + str(filesize)+"\n" + str(mode) +"\n")
     outputfile.close()
 
-    file_stat = os.stat(ffi_file)
+    file_stat = os.stat("FFI_data.txt")
     trash_size = file_stat.st_size
 
 
     executable_path = "CUDA_backend.exe"  # Replace with actual path
-    arguments = [ffi_file]  # Replace with your input values
+    arguments = ["FFI_data.txt"]  # Replace with your input values
 
-    subprocess.run([executable_path, *arguments])
+    subprocess.run(["CUDA_backend.exe", *arguments])
 
-    ffi_file = "FFI_data.txt"
     trash = b'00'*trash_size
-    outputfile = open(ffi_file, "wb")
+    outputfile = open("FFI_data.txt", "wb")
     outputfile.write(trash)
     outputfile.close()
-    os.remove(ffi_file)
-    
+    os.remove("FFI_data.txt")
     
     end_time = time()
     execution_time = end_time - start
@@ -112,12 +89,12 @@ def aux(password, mode, result_list, label4, label5, label6, main_window):
     if(mode ==0):
         main_window.show_finished_image(0)
         msg1 ="Encrypted file's location:\n"+str(output)
-        msg2 ="Encrypted "+ str(OGfilesize) +" bytes in "+str(execution_time) + " seconds"
+        msg2 ="Encrypted "+ str(filesize) +" bytes in "+str(execution_time) + " seconds"
 
     else:
         main_window.show_finished_image(1)
         msg1 ="Decrypted file's location:\n"+str(output)
-        msg2 ="Decrypted "+ str(OGfilesize) +" bytes in "+str(execution_time) + " seconds"
+        msg2 ="Decrypted "+ str(filesize) +" bytes in "+str(execution_time) + " seconds"
 
     label5.setText(msg1)
     label5.setAlignment(Qt.AlignCenter)
@@ -144,19 +121,13 @@ class MyWidget(QWidget):
         thread.start()
     
     def show_finished_image(self,mode):
-        # Hide the loading label
         self.loading_label.hide()
         self.label4.show()
-        finished_image_path1 = resource_path('locked_file.png')
-
-        finished_image_path2 = resource_path('unlocked_file.png')
-
-        # Load and set the finished image
         if(mode == 0):
-            pixmap = QPixmap(finished_image_path1)
+            pixmap = QPixmap(resource_path('locked_file.png'))
 
         else:
-            pixmap = QPixmap(finished_image_path2)
+            pixmap = QPixmap( resource_path('unlocked_file.png'))
         
         self.label4.setText("")  # Clear any previous messages
         self.label4.setPixmap(pixmap)
@@ -176,8 +147,7 @@ class MyWidget(QWidget):
     def initUI(self):
 
         try:
-            icon_path= resource_path('nvidialock.ico')
-            self.setWindowIcon(QIcon(icon_path))
+            self.setWindowIcon(QIcon(resource_path('nvidialock.ico')))
         except:
             print("Icon file named nvidialock.ico not found")
 
@@ -223,8 +193,7 @@ class MyWidget(QWidget):
         self.password_field.setFont(QFont("Calibri", 12))
 
         self.show_password_button = QPushButton()
-        eye_con = resource_path('eye_con.png')
-        self.show_password_button.setIcon(QIcon(eye_con))
+        self.show_password_button.setIcon(QIcon(resource_path('eye_con.png')))
         self.show_password_button.clicked.connect(self.toggle_password_visibility)
         
         
@@ -260,7 +229,6 @@ class MyWidget(QWidget):
         vbox.setContentsMargins(20, 20, 20, 20)
 
         self.setLayout(vbox)
-
 
 if __name__ == '__main__':
     freeze_support()
