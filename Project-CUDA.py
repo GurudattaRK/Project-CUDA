@@ -96,8 +96,7 @@ def aux(password, mode, result_list, label4, label5, label6, main_window):
         msg1 ="Decrypted file's location:\n"+str(output)
         msg2 ="Decrypted "+ str(filesize) +" bytes in "+str(execution_time) + " seconds"
 
-    label5.setText(msg1)
-    label5.setAlignment(Qt.AlignCenter)
+    label5.setText(msg1); label5.setAlignment(Qt.AlignCenter)
     label6.setText(msg2)
 
     return
@@ -121,17 +120,14 @@ class MyWidget(QWidget):
         thread.start()
     
     def show_finished_image(self,mode):
-        self.loading_label.hide()
-        self.label4.show()
+        self.loading_label.hide(); self.label4.show()
         if(mode == 0):
             pixmap = QPixmap(resource_path('locked_file.png'))
 
         else:
             pixmap = QPixmap( resource_path('unlocked_file.png'))
         
-        self.label4.setText("")  # Clear any previous messages
-        self.label4.setPixmap(pixmap)
-        self.label4.setAlignment(Qt.AlignCenter)
+        self.label4.setText(""); self.label4.setPixmap(pixmap); self.label4.setAlignment(Qt.AlignCenter)
 
     def toggle_password_visibility(self):
         if self.password_field.echoMode() == QLineEdit.Password:
@@ -151,82 +147,42 @@ class MyWidget(QWidget):
         except:
             print("Icon file named nvidialock.ico not found")
 
-        label1 = QLabel('Select the file you want to Encrypt/Decrypt')
-        label1.setStyleSheet("color: #02013D; font-weight: bold;")
-        label1.setFont(QFont("Calibri", 18))
+        label1 = QLabel('Select the file you want to Encrypt/Decrypt'); label1.setStyleSheet("color: #02013D; font-weight: bold;"); label1.setFont(QFont("Calibri", 18))
 
-        button1 = QPushButton('Select file here')
-        button1.setStyleSheet("background-color: #2510c7; color: white; padding: 10px; border-radius: 5px;")
-        button1.setFont(QFont("Calibri", 15, QFont.Bold))
-        button1.clicked.connect(lambda:openfile1(result_list, self.label2))
+        button1 = QPushButton('Select file here'); button1.setStyleSheet("background-color: #2510c7; color: white; padding: 10px; border-radius: 5px;"); button1.setFont(QFont("Calibri", 15, QFont.Bold)); button1.clicked.connect(lambda:openfile1(result_list, self.label2))
 
-        executable_path = "corecount.exe"
         try:
-            output = subprocess.check_output(executable_path, universal_newlines=True)
+            output = subprocess.check_output("corecount.exe", universal_newlines=True)
         except subprocess.CalledProcessError as e:
             count=e.returncode
 
-        self.label2 = QLabel('')
-        self.label2.setStyleSheet("color: #444444; font-weight: bold;")
-        self.label2.setText('Tip: Choose a file bigger than '+str(count*5*128) + ' bytes to utilize full strength of your GPU')
+        self.label2 = QLabel(''); self.label2.setStyleSheet("color: #444444; font-weight: bold;"); self.label2.setText('Tip: Choose a file bigger than '+str(count*5*128) + ' bytes to utilize full strength of your GPU')
 
 
-        label3 = QLabel('Enter your password:')
-        label3.setStyleSheet("color: #02013D; font-weight: bold;")
-        label3.setFont(QFont("Calibri", 15))
+        label3 = QLabel('Enter your password:'); label3.setStyleSheet("color: #02013D; font-weight: bold;"); label3.setFont(QFont("Calibri", 15))
         
-        self.label4 = QLabel('')
-        self.label4.setStyleSheet("color: #222222; font-weight: bold;")
-        self.label4.setFont(QFont("Calibri", 14))
+        self.label4 = QLabel(''); self.label4.setStyleSheet("color: #222222; font-weight: bold;"); self.label4.setFont(QFont("Calibri", 14))
 
-        self.label5 = QLabel('')
-        self.label5.setStyleSheet("color: #444444; font-weight: bold;")
-        self.label5.setFont(QFont("Calibri", 14))
+        self.label5 = QLabel(''); self.label5.setStyleSheet("color: #444444; font-weight: bold;"); self.label5.setFont(QFont("Calibri", 14))
 
-        self.label6 = QLabel('')
-        self.label6.setStyleSheet("color: #666666; font-weight: bold;")
-        self.label6.setFont(QFont("Calibri", 12))
+        self.label6 = QLabel(''); self.label6.setStyleSheet("color: #666666; font-weight: bold;"); self.label6.setFont(QFont("Calibri", 12))
 
-        self.password_field = QLineEdit()
-        self.password_field.setEchoMode(QLineEdit.Password)  # Set the echo mode to Password for masked input
-        self.password_field.setStyleSheet("background-color: #F0F0F0; border: 1px solid #BFBFBF; padding: 10px; border-radius: 5px;")
-        self.password_field.setFont(QFont("Calibri", 12))
+        self.password_field = QLineEdit(); self.password_field.setEchoMode(QLineEdit.Password); self.password_field.setStyleSheet("background-color: #F0F0F0; border: 1px solid #BFBFBF; padding: 10px; border-radius: 5px;"); self.password_field.setFont(QFont("Calibri", 12))
 
-        self.show_password_button = QPushButton()
-        self.show_password_button.setIcon(QIcon(resource_path('eye_con.png')))
-        self.show_password_button.clicked.connect(self.toggle_password_visibility)
+        self.show_password_button = QPushButton(); self.show_password_button.setIcon(QIcon(resource_path('eye_con.png'))); self.show_password_button.clicked.connect(self.toggle_password_visibility)
         
         
-        button2 = QPushButton('Encrypt')
-        button2.setStyleSheet("background-color: #77b801; color: white; padding: 10px; border-radius: 5px;")
-        button2.setFont(QFont("Calibri", 15, QFont.Bold))
-        button2.clicked.connect(lambda _: self.start_aux_thread(0))
+        button2 = QPushButton('Encrypt'); button2.setStyleSheet("background-color: #77b801; color: white; padding: 10px; border-radius: 5px;"); button2.setFont(QFont("Calibri", 15, QFont.Bold)); button2.clicked.connect(lambda _: self.start_aux_thread(0))
 
-        button3 = QPushButton('Decrypt')
-        button3.setStyleSheet("background-color: #c90202; color: white; padding: 10px; border-radius: 5px;")
-        button3.setFont(QFont("Calibri", 15, QFont.Bold))
-        button3.clicked.connect(lambda _: self.start_aux_thread(1))
+        button3 = QPushButton('Decrypt'); button3.setStyleSheet("background-color: #c90202; color: white; padding: 10px; border-radius: 5px;"); button3.setFont(QFont("Calibri", 15, QFont.Bold)); button3.clicked.connect(lambda _: self.start_aux_thread(1))
 
         vbox = QVBoxLayout()
         hbox = QHBoxLayout()
         hbox2 = QHBoxLayout()
 
-        vbox.addWidget(label1)
-        vbox.addWidget(button1)
-        vbox.addWidget(self.label2)
-        vbox.addWidget(label3)
-        vbox.addLayout(hbox)
-        hbox.addWidget(self.password_field)
-        hbox.addWidget(self.show_password_button)
-        vbox.addLayout(hbox2)
+        vbox.addWidget(label1); vbox.addWidget(button1); vbox.addWidget(self.label2); vbox.addWidget(label3); vbox.addLayout(hbox); hbox.addWidget(self.password_field); hbox.addWidget(self.show_password_button); vbox.addLayout(hbox2)
 
-        hbox2.addWidget(button2)
-        hbox2.addWidget(button3)
-        vbox.addWidget(self.label4)
-        vbox.addWidget(self.label5)
-        vbox.addWidget(self.label6)
-        vbox.setSpacing(20)
-        vbox.setContentsMargins(20, 20, 20, 20)
+        hbox2.addWidget(button2); hbox2.addWidget(button3); vbox.addWidget(self.label4); vbox.addWidget(self.label5); vbox.addWidget(self.label6); vbox.setSpacing(20); vbox.setContentsMargins(20, 20, 20, 20)
 
         self.setLayout(vbox)
 
