@@ -13,4 +13,4 @@ GPUs are state of the art Co-processors that can be used for more than just grap
 2. Run the Project-CUDA.exe
 
 ## Warning
-Do not move or change contents of any file in "_internal" in the zip folder. It contains all the libraries, dependencies & , backend CUDA kernel.
+Do not move or change contents of any file in "_internal" in the zip folder. It contains all the libraries, dependencies & backend CUDA kernel.
